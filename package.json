@@ -1,9 +1,9 @@
 {
-  "name": "ollama",
-  "version": "0.0.1",
+  "name": "ollama-node",
+  "version": "0.0.4",
   "description": "",
   
-  "main": "ollama.js",
+  "main": "lib/ollama.js",
   "files": [
     "lib/**/*"
   ],

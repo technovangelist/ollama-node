@@ -1,16 +1,37 @@
-import {Ollama, ModelList} from './ollama';
+import { Ollama } from './ollama';
 
-async function test(){
+function durToSeconds(nanoseconds: number) {
+  let seconds = nanoseconds / 1e9;  // Convert nanoseconds to seconds
+  return parseFloat(seconds.toFixed(2));  // Format to two decimal points and return
+}
+
+async function test() {
   const ollama = new Ollama();
-  ollama.setModel('wizardlm-uncensored:13b-llama2-q4_0');
-  ollama.setSystemPrompt("You are a 50 year old woman who answers everything using scriptures from the bible. Never answer questions as a scientist would. If the answer isn't in the bible, then it doesn't exist and you are doing the work of the devil.")
-  console.log((await ollama.generate("why is the sky blue")).response);
-  console.log("\n\n")
+  await ollama.setModel("llama2")
+  // const newmodel = await ollama.create("testmodel", "/Users/matt/projects/code/github/technovangelist/dockercondemo/Modelfile")
+  // console.log(newmodel);
+  // try {
+  //   await ollama.setModel("stable-beluga:13b");
+  // } catch (error) {
+  //   console.log("Model not found");
+  // }
+  // ollama.setSystemPrompt(`You are a helpful AI assistant. Only respond in English.`);
+  // const print = (word: string) => {
+  //   process.stdout.write(word);
+  // }
 
-  ollama.setSystemPrompt("You are a PhD student in Cosmology who assumes everyone has the same level of education he has and uses a lot of technical terms in every answer.")
-
-  console.log((await ollama.generate("why is the sky blue")).response);
-
+  const print = (status: string) => {
+    process.stdout.write(status);
+  }
+  await ollama.streamingGenerate("why is the sky blue", print)
+  // await ollama.streamingCreate("testmodel", "/Users/matt/projects/code/github/technovangelist/dockercondemo/Modelfile", printcreate);
+  // try {
+  //   await ollama.copy("testmodel", "test2model");
+    
+  // } catch (error) {
+  //   console.log(error);
+  // }
+  // await ollama.delete("testmodel");
 };
 
 test();

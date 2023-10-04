@@ -1,28 +1,42 @@
-import { requestList, requestGenerate, requestShowInfo, GenerateComplete } from "./utility";
-import { RequestOptions } from "http"
+import { requestList, requestShowInfo, requestPost, streamingPost, requestDelete } from "./utility";
+import { RequestOptions } from "http";
 
-type GenerateOutput = {
-  response: string,
-  stats: GenerateComplete
+interface Options {
+  [key: string]: any;
 }
+type CallbackFunction = (chunk: any) => void;
 
 type ListOutput = {
   models: string[],
   complete: ModelList[]
 }
 type ShowInfoOutput = {
-  license?: string, 
-  modelfile?: string, 
+  license?: string,
+  modelfile?: string,
   parameters?: string,
   system?: string,
   template?: string
 }
 
-// type ListOutputType = 'models' | 'complete';
-// type ListOutput<T> =
-//   T extends 'models' ? string[] :
-//   T extends 'complete' ? ModelList[] :
-//   never;
+type GenerateBodyInput = {
+  model: string,
+  prompt: string,
+  system: string,
+  template: string,
+  options: Options,
+  context: number[]
+}
+
+type GenerateMessage = {
+  model: string,
+  created_at: string,
+  response: string,
+  done: boolean
+}
+
+type CreateMessage = {
+  status: string
+}
 
 export type ModelList = {
   name: string,
@@ -30,12 +44,14 @@ export type ModelList = {
   size: number,
   digest: string
 }
+
 export class Ollama {
-  Host: string;
-  Port: number = 11434;
-  Model: string = '';
-  SystemPrompt: string = '';
-  Template: string = '';
+  protected Host: string;
+  private Port: number = 11434;
+  private Model: string = '';
+  private SystemPrompt: string = '';
+  private Template: string = '';
+  private Parameters: Options = {};
 
   constructor();
   constructor(ollamaHost: string);
@@ -48,16 +64,45 @@ export class Ollama {
       } else {
         this.Host = args[0];
       }
-
     }
-
   }
 
-  async setModel(model: string) {
-    this.Model = model;
+  private async parseParams() {
+    let options: Options = {};
     const info = await this.showModelInfo();
-    this.Template = info.template || '';
-    this.SystemPrompt = info.system || '';
+    const params = info.parameters?.split('\n').forEach(line => {
+      const [name, value] = line.split(/\s+/).filter(Boolean);
+      if (name === 'stop') {
+        if (!options.stop) {
+          options.stop = [];
+        }
+        options.stop.push(value);
+      } else {
+        options[name] = value;
+      }
+    });
+    return options;
+  }
+  async localModelExists(model: string) {
+    const localmodels = await this.listModels();
+    if (model.includes(":")) {
+      return localmodels.models.includes(model);
+    } else {
+      const basemodels = localmodels.models.map(m => m.split(":")[0]);
+      return basemodels.includes(model);
+    }
+  }
+  async setModel(model: string) {
+    const localmodels = await this.listModels()
+    if (await this.localModelExists(model)) {
+      this.Model = model;
+      const info = await this.showModelInfo();
+      this.Parameters = await this.parseParams();
+      this.Template = info.template || '';
+      this.SystemPrompt = info.system || '';
+    } else {
+      throw new Error(`Model ${model} not found.`);
+    }
   }
   setTemplate(template: string) {
     this.Template = template;
@@ -67,16 +112,52 @@ export class Ollama {
     this.SystemPrompt = systemPrompt;
   }
 
-  verifyModel() {
-    if (this.Model === '') {
-      throw new Error('Model not set');
-    } else {
-      if (this.SystemPrompt === '') {
-        throw new Error('System Prompt not set');
+  addParameter(name: string, value: any) {
+    name = name.toLowerCase();
+    if (name === 'stop') {
+      if (!this.Parameters.stop) {
+        this.Parameters.stop = [];
       }
+      this.Parameters.stop.push(value);
+    } else {
+      this.Parameters[name] = value;
     }
   }
-  async showModelInfo(): Promise<ShowInfoOutput> {
+
+  deleteParameter(name: string, value: string) {
+    if (name === 'stop') {
+      const stops: string[] = this.Parameters.stop;
+      if (stops.includes(value)) {
+        stops.splice(stops.indexOf(value))
+        this.Parameters.stop = stops
+      }
+    } else {
+      this.Parameters[name] = undefined;
+    }
+  }
+
+
+  deleteParameterByName(name: string) {
+    this.Parameters[name] = undefined;
+  }
+  deleteAllParameters() {
+    this.Parameters = {};
+  }
+
+  showParameters() {
+    return this.Parameters;
+  }
+  async showSystemPrompt() {
+    return this.SystemPrompt;
+  }
+  showTemplate() {
+    return this.Template;
+  }
+  showModel() {
+    return this.Model;
+  }
+
+  private async showModelInfo(): Promise<ShowInfoOutput> {
     const options: RequestOptions = {
       hostname: this.Host,
       port: this.Port,
@@ -99,22 +180,184 @@ export class Ollama {
     return { models, complete }
   }
 
-  async generate(prompt: string): Promise<GenerateOutput> {
+  async generate(prompt: string) {
     const generateOptions: RequestOptions = {
       hostname: this.Host,
       port: 11434,
       method: 'POST',
       path: '/api/generate',
+    };
+    const generateBody: GenerateBodyInput = {
+      model: this.Model,
+      prompt,
+      system: this.SystemPrompt,
+      template: this.Template,
+      options: this.Parameters,
+      context: []
     }
-    return await requestGenerate(generateOptions, this.Model, prompt, this.SystemPrompt, this.Template) as GenerateOutput;
+    console.log(generateBody.options);
+    const genoutput = await requestPost('generate', generateOptions, generateBody);
+    const messages: GenerateMessage[] = genoutput.messages as GenerateMessage[];
+    const output = messages.map(m => m.response).join("")
+
+    return { output, stats: genoutput.final }
+
   };
 
 
-  // pullmodel
-  // pushmodel
-  // generate
-  // createmodel
-  // showmodelinfo
-  // copymodel
-  // deletemodel
+  streamingGenerate(prompt: string, responseOutput: CallbackFunction | null = null, contextOutput: CallbackFunction | null = null, fullResponseOutput: CallbackFunction | null = null, statsOutput: CallbackFunction | null = null) {
+    const options: RequestOptions = {
+      hostname: this.Host,
+      port: 11434,
+      method: 'POST',
+      path: '/api/generate',
+    }
+    const body: GenerateBodyInput = {
+      model: this.Model,
+      prompt,
+      system: this.SystemPrompt,
+      template: this.Template,
+      options: this.Parameters,
+      context: []
+    }
+
+    streamingPost('generate', options, body, (chunk) => {
+      const jchunk = JSON.parse(chunk);
+      if (Object.hasOwn(jchunk, 'response')) {
+        fullResponseOutput && fullResponseOutput(JSON.stringify(jchunk))
+        responseOutput && responseOutput(jchunk.response)
+      } else {
+        if (Object.hasOwn(jchunk, 'context')) {
+          // console.log(jchunk.context)
+          statsOutput && statsOutput(JSON.stringify(jchunk))
+          contextOutput && contextOutput(jchunk.context.toString());
+        }
+      }
+    })
+
+  }
+
+  // async delete(modelName: string) {
+  //   const options: RequestOptions = {
+  //     hostname: this.Host,
+  //     port: 11434,
+  //     method: 'DELETE',
+  //     path: '/api/delete',
+  //   }
+
+  //   const genoutput = await requestDelete(options, modelName);
+  //   console.log(genoutput);
+  // }
+
+  async create(modelName: string, modelPath: string) {
+    const createOptions: RequestOptions = {
+      hostname: this.Host,
+      port: 11434,
+      method: 'POST',
+      path: '/api/create',
+    };
+    const createBody = {
+      name: modelName,
+      path: modelPath
+    }
+    const genoutput = await requestPost('create', createOptions, createBody);
+    const messages: CreateMessage[] = genoutput.messages as CreateMessage[];
+    return messages.map(m => m.status);
+  };
+
+
+
+  streamingCreate(modelName: string, modelPath: string, responseOutput: CallbackFunction | null = null): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const options: RequestOptions = {
+        hostname: this.Host,
+        port: 11434,
+        method: 'POST',
+        path: '/api/create',
+      }
+      const body = {
+        name: modelName,
+        path: modelPath
+      }
+      streamingPost('create', options, body, async (chunk) => {
+        const jchunk = JSON.parse(chunk);
+        if (Object.hasOwn(jchunk, 'status')) {
+          responseOutput && responseOutput(jchunk.status)
+          if (jchunk.status === "success") {
+            resolve();
+          }
+        } else {
+          responseOutput && responseOutput(jchunk)
+        }
+      })
+    })
+  }
+
+  async streamingPull(modelName: string, responseOutput: CallbackFunction | null = null): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const options: RequestOptions = {
+        hostname: this.Host,
+        port: 11434,
+        method: 'POST',
+        path: '/api/pull',
+      }
+      const body = {
+        name: modelName
+      }
+      streamingPost('pull', options, body, async (chunk) => {
+        const jchunk = JSON.parse(chunk);
+        if (Object.hasOwn(jchunk, 'status')) {
+          responseOutput && responseOutput(jchunk.status)
+          // if (jchunk.status === "success") {
+          //   resolve();
+          // }
+        } else {
+          responseOutput && responseOutput(jchunk)
+        }
+      })
+    })
+  }
+
+  async streamingPush(modelName: string, responseOutput: CallbackFunction | null = null): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const options: RequestOptions = {
+        hostname: this.Host,
+        port: 11434,
+        method: 'POST',
+        path: '/api/push',
+      }
+      const body = {
+        name: modelName
+      }
+      streamingPost('push', options, body, async (chunk) => {
+        const jchunk = JSON.parse(chunk);
+        if (Object.hasOwn(jchunk, 'status')) {
+          responseOutput && responseOutput(jchunk.status)
+          // if (jchunk.status === "success") {
+          //   resolve();
+          // }
+        } else {
+          responseOutput && responseOutput(jchunk)
+        }
+      })
+    })
+  }
+
+  async copy(sourceName: string, destinationName: string) {
+    const options: RequestOptions = {
+      hostname: this.Host,
+      port: 11434,
+      method: 'POST',
+      path: '/api/copy',
+    };
+    const body = {
+      source: sourceName,
+      destination: destinationName
+    }
+    if (await this.localModelExists(sourceName)) {
+      requestPost('copy', options, body);
+    } else {
+      return Promise.reject(new Error("Model not found"));
+    }
+  };
 }
