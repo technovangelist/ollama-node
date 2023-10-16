@@ -65,15 +65,8 @@ interface Options {
   numThread?: number;
 }
 
-type PostTarget = 'generate' | 'create' | 'delete' | 'pull' | 'push' | 'copy'; // | 'show';
-// type PostOutput<T> =
-//   T extends 'generate' ? GenerateMessage[] :
-//   T extends 'create' ? string[] :
-//   T extends 'delete' ? string[] :
-//   never;
-// T extends 'copy' ? string :
-// T extends 'delete' ? string :
-// T extends 'show' ? ShowInfoOutput :
+type PostTarget = 'generate' | 'create' | 'delete' | 'pull' | 'push' | 'copy' | 'embed'; // | 'show';
+
 type PostInput<T> =
   T extends 'generate' ? { model: string, prompt: string, system: string, template: string, options: Options, context: number[] } :
   T extends 'create' ? { name: string, path: string } :
@@ -81,12 +74,8 @@ type PostInput<T> =
   T extends 'pull' ? { name: string } :
   T extends 'push' ? { name: string } :
   T extends 'copy' ? { source: string, destination: string } :
+  T extends 'embed' ? { model: string, prompt: string } :
   never;
-
-// type PostMessage<T> =
-//   T extends 'generate' ? GenerateMessage :
-//   // T extends 'create' ? string :
-//   never;
 
 
 export function requestList(options: RequestOptions) {
@@ -98,7 +87,7 @@ export function requestList(options: RequestOptions) {
       }
       const body: string[] = [];
 
-      response.on('data', (chunk) => body.push(chunk));
+      response.on('data', (chunk: string) => body.push(chunk));
       response.on('end', () => {
         const joined = body.join('');
         const parsed = JSON.parse(joined);
@@ -120,7 +109,8 @@ export function requestShowInfo(options: RequestOptions, model: string) {
       }
       const body: string[] = [];
 
-      response.on('data', (chunk) => body.push(chunk));
+
+      response.on('data', (chunk: string) => body.push(chunk));
       response.on('end', () => {
 
         const joined = body.join('');
@@ -146,7 +136,7 @@ export function requestDelete(options: RequestOptions, model: string) {
       }
       const body: string[] = [];
 
-      response.on('data', (chunk) => body.push(chunk));
+      response.on('data', (chunk: string) => body.push(chunk));
       response.on('end', () => {
         const joined = body.join('');
         const parsed = JSON.parse(joined);
@@ -169,12 +159,21 @@ export function requestPost<P extends PostTarget>(target: P, options: RequestOpt
         return reject(new Error(`Failed with status code: ${response.statusCode}`));
       }
       response.on('data', (chunk) => {
-        body.push(JSON.parse(chunk));
+        if (target === 'embed') {
+          console.log('hi');
+          body.push(chunk.toString('utf8'))
+        } else {
+          body.push(JSON.parse(chunk));
+        }
       });
       response.on('end', () => {
-        const final = body[body.length - 1];
-        const messages = body.splice(0, body.length - 1);
-        resolve({ messages, final });
+        if (target === 'embed') {
+          resolve({ messages: [], final: JSON.parse(body.join('')) })
+        } else {
+          const final = body[body.length - 1];
+          const messages = body.splice(0, body.length - 1);
+          resolve({ messages, final });
+        }
       });
     });
     req.write(JSON.stringify(databody));
@@ -187,6 +186,7 @@ export function streamingPost<P extends PostTarget>(target: P, options: RequestO
   const req = request(options, (res) => {
     res.on('data', (chunk: string) => {
       // console.log('in streamingPost');
+      // console.log(chunk);
       const chunkStr = chunk.toString();
       const items = chunkStr.split('\n').filter(Boolean);
 
@@ -232,29 +232,3 @@ export async function* streamingGenerate(options: RequestOptions, model: string,
   }
 
 }
-
-// export function requestCreate(options: RequestOptions, modelName: string, modelPath: string): any {
-//   return new Promise((resolve, reject) => {
-//     const req = request(options, (response) => {
-//       const statusCode = response.statusCode || 0;
-//       if (statusCode < 200 || statusCode > 299) {
-//         return reject(new Error(`Failed with status code: ${response.statusCode}`));
-//       }
-//       const body: {}[] = [];
-
-//       response.on('data', (chunk) => {
-//         body.push(JSON.parse(chunk));
-//       });
-
-//       response.on('end', () => {
-//         const stats: GenerateComplete = body[body.length - 1] as unknown as GenerateComplete;
-//         const response = body.slice(0, body.length - 1).map(m => m.response).join('').trim();
-//         resolve({ response, stats })
-//       });
-//     });
-//     req.write(JSON.stringify({ "name": modelName, "path": modelPath }));
-//     req.on('error', reject);
-//     req.end()
-
-//   });
-// };

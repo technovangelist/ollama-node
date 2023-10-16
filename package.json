@@ -1,25 +1,36 @@
 {
   "name": "ollama-node",
-  "version": "0.0.4",
+  "version": "0.1.5",
   "description": "",
-  
   "main": "lib/ollama.js",
   "files": [
     "lib/**/*"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "build": "tsc",
-    "ex": "tsc && node --enable-source-maps lib/example.js"
+    "debug": "tsc && node --enable-source-maps lib/example.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "ollama",
+    "node",
+    "typescript"
+  ],
+  "author": "Matt Williams",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/technovangelist/ollama-node"
+  },
   "license": "ISC",
   "devDependencies": {
+    "@babel/preset-typescript": "^7.23.0",
+    "@types/jest": "^29.5.5",
+    "jest": "^29.7.0",
     "prettier": "^3.0.3",
+    "ts-jest": "^29.1.1",
     "typescript": "^5.2.2"
   },
   "dependencies": {
-    "@types/node": "^20.6.2"
+    "@types/node": "^20.8.4"
   }
 }

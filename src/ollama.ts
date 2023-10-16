@@ -45,6 +45,19 @@ export type ModelList = {
   digest: string
 }
 
+export type GenerateFinalOutput = {
+  model: string,
+  created_at: string,
+  done: boolean,
+  context: number[],
+  total_duration: number,
+  load_duration: number,
+  prompt_eval_count: number,
+  prompt_eval_duration: number,
+  eval_count: number,
+  eval_duration: number,
+}
+
 export class Ollama {
   protected Host: string;
   private Port: number = 11434;
@@ -52,6 +65,7 @@ export class Ollama {
   private SystemPrompt: string = '';
   private Template: string = '';
   private Parameters: Options = {};
+  private Context: number[] = [];
 
   constructor();
   constructor(ollamaHost: string);
@@ -66,6 +80,7 @@ export class Ollama {
       }
     }
   }
+
 
   private async parseParams() {
     let options: Options = {};
@@ -83,7 +98,7 @@ export class Ollama {
     });
     return options;
   }
-  async localModelExists(model: string) {
+  async localModelExists(model: string): Promise<boolean> {
     const localmodels = await this.listModels();
     if (model.includes(":")) {
       return localmodels.models.includes(model);
@@ -92,8 +107,17 @@ export class Ollama {
       return basemodels.includes(model);
     }
   }
+
+  setContext(context: number[]) {
+    this.Context = context;
+  }
+
+  showHost() {
+    return this.Host;
+  }
+
   async setModel(model: string) {
-    const localmodels = await this.listModels()
+    // const localmodels = await this.listModels() //? 
     if (await this.localModelExists(model)) {
       this.Model = model;
       const info = await this.showModelInfo();
@@ -144,7 +168,7 @@ export class Ollama {
     this.Parameters = {};
   }
 
-  showParameters() {
+  showParameters(): Options {
     return this.Parameters;
   }
   async showSystemPrompt() {
@@ -162,20 +186,21 @@ export class Ollama {
       hostname: this.Host,
       port: this.Port,
       method: 'POST',
-      path: '/api/show',
+      path: '/api/show'
     }
 
     return await requestShowInfo(options, this.Model) as ShowInfoOutput;
   }
-  async listModels(): Promise<ListOutput> {
+  async listModels() {
     const options: RequestOptions = {
       hostname: this.Host,
       port: this.Port,
       path: '/api/tags',
+      method: 'GET'
     }
 
     const getResponse = await requestList(options) as { 'models': ModelList[] };
-    const complete = getResponse.models
+    const complete = getResponse.models;
     const models = complete.map(m => m.name);
     return { models, complete }
   }
@@ -193,48 +218,53 @@ export class Ollama {
       system: this.SystemPrompt,
       template: this.Template,
       options: this.Parameters,
-      context: []
+      context: this.Context
     }
-    console.log(generateBody.options);
+    // console.log(generateBody.options);
     const genoutput = await requestPost('generate', generateOptions, generateBody);
+    const final: GenerateFinalOutput = genoutput.final as GenerateFinalOutput;
     const messages: GenerateMessage[] = genoutput.messages as GenerateMessage[];
-    const output = messages.map(m => m.response).join("")
+    this.Context = final.context as number[];
 
+    const output = messages.map(m => m.response).join("")
     return { output, stats: genoutput.final }
 
   };
 
 
-  streamingGenerate(prompt: string, responseOutput: CallbackFunction | null = null, contextOutput: CallbackFunction | null = null, fullResponseOutput: CallbackFunction | null = null, statsOutput: CallbackFunction | null = null) {
-    const options: RequestOptions = {
-      hostname: this.Host,
-      port: 11434,
-      method: 'POST',
-      path: '/api/generate',
-    }
-    const body: GenerateBodyInput = {
-      model: this.Model,
-      prompt,
-      system: this.SystemPrompt,
-      template: this.Template,
-      options: this.Parameters,
-      context: []
-    }
-
-    streamingPost('generate', options, body, (chunk) => {
-      const jchunk = JSON.parse(chunk);
-      if (Object.hasOwn(jchunk, 'response')) {
-        fullResponseOutput && fullResponseOutput(JSON.stringify(jchunk))
-        responseOutput && responseOutput(jchunk.response)
-      } else {
-        if (Object.hasOwn(jchunk, 'context')) {
-          // console.log(jchunk.context)
-          statsOutput && statsOutput(JSON.stringify(jchunk))
-          contextOutput && contextOutput(jchunk.context.toString());
-        }
+  streamingGenerate(prompt: string, responseOutput: CallbackFunction | null = null, contextOutput: CallbackFunction | null = null, fullResponseOutput: CallbackFunction | null = null, statsOutput: CallbackFunction | null = null): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const options: RequestOptions = {
+        hostname: this.Host,
+        port: 11434,
+        method: 'POST',
+        path: '/api/generate',
       }
-    })
+      const body: GenerateBodyInput = {
+        model: this.Model,
+        prompt,
+        system: this.SystemPrompt,
+        template: this.Template,
+        options: this.Parameters,
+        context: this.Context
+      }
 
+      streamingPost('generate', options, body, (chunk) => {
+        const jchunk = JSON.parse(chunk);
+        if (Object.hasOwn(jchunk, 'response')) {
+          fullResponseOutput && fullResponseOutput(JSON.stringify(jchunk))
+          responseOutput && responseOutput(jchunk.response)
+        } else {
+          if (Object.hasOwn(jchunk, 'context')) {
+            // console.log(jchunk.context)
+            statsOutput && statsOutput(JSON.stringify(jchunk))
+            contextOutput && contextOutput(jchunk.context.toString());
+            this.Context = jchunk.context;
+            resolve();
+          }
+        }
+      })
+    });
   }
 
   // async delete(modelName: string) {
@@ -266,6 +296,20 @@ export class Ollama {
   };
 
 
+  async generateEmbed(modelName: string, input: string) {
+    const options: RequestOptions = {
+      hostname: this.Host,
+      port: 11434,
+      method: 'POST',
+      path: '/api/embeddings'
+    };
+    const body = {
+      model: modelName,
+      prompt: input
+    };
+    const genoutput = await requestPost('embed', options, body);
+    console.log((genoutput.final as { embedding: number[]}).embedding)
+  };
 
   streamingCreate(modelName: string, modelPath: string, responseOutput: CallbackFunction | null = null): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -360,4 +404,11 @@ export class Ollama {
       return Promise.reject(new Error("Model not found"));
     }
   };
+  cbPrintword(chunk: any) {
+    process.stdout.write(chunk);
+  }
+  cbPrintLine(chunk: any) {
+    console.log(chunk);
+  }
+
 }
