@@ -125,7 +125,6 @@ export class Ollama {
   }
 
   async setModel(model: string) {
-    // const localmodels = await this.listModels() //? 
     if (await this.localModelExists(model)) {
       this.Model = model;
       const info = await this.showModelInfo();
