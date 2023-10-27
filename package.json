@@ -1,6 +1,6 @@
 {
   "name": "ollama-node",
-  "version": "0.1.21",
+  "version": "0.1.22",
   "description": "an easy to use node module for the ollama api",
   "main": "lib/ollama.js",
   "files": [
