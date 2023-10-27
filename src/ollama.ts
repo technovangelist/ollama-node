@@ -227,7 +227,6 @@ export class Ollama {
       options: this.Parameters,
       context: this.Context
     }
-    // console.log(generateBody.options);
     const genoutput = await requestPost('generate', generateOptions, generateBody);
     const final: GenerateFinalOutput = genoutput.final as GenerateFinalOutput;
     const messages: GenerateMessage[] = genoutput.messages as GenerateMessage[];
