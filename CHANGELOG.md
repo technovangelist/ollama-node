@@ -1,4 +1,13 @@
-## 0.1.17 (2023-10-27)
+## [0.1.18](https://github.com/technovangelist/ollama-node/compare/v0.1.17...v0.1.18) (2023-10-27)
+
+
+### Bug Fixes
+
+* i dont have ci but the action thought so ([1a30fa9](https://github.com/technovangelist/ollama-node/commit/1a30fa9af921608decfc4a3c15c950c91ebae146))
+
+
+
+## [0.1.17](https://github.com/technovangelist/ollama-node/compare/2fbefafbd1197ae2df7ce42c57c7cc3f8455da1c...v0.1.17) (2023-10-27)
 
 
 ### Bug Fixes
