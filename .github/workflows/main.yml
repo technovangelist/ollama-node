@@ -19,7 +19,7 @@ jobs:
         with:
           node-version: 21.1.0
           registry-url: https://registry.npmjs.org/
-
+      - run: npm install
       - run: npm run build
       - run: npm publish
         env:
