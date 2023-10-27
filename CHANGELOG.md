@@ -1,3 +1,12 @@
+## [0.1.20](https://github.com/technovangelist/ollama-node/compare/v0.1.19...v0.1.20) (2023-10-27)
+
+
+### Bug Fixes
+
+* to get changelog generate correct ([4c5421f](https://github.com/technovangelist/ollama-node/commit/4c5421fed25dd13f7c82222dd86247c5da5e988f))
+
+
+
 ## [0.1.19](https://github.com/technovangelist/ollama-node/compare/v0.1.18...v0.1.19) (2023-10-27)
 
 
