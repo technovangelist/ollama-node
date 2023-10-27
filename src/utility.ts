@@ -192,7 +192,6 @@ export function streamingPost<P extends PostTarget>(target: P, options: RequestO
 
       for (const item of items) {
         callback(item);
-        // console.log(item);
         if (item.includes('error')) {
           console.log(`Error: ${JSON.parse(item).error}`)
         }

@@ -236,6 +236,7 @@ export class Ollama {
     return { output, stats: final }
 
   };
+  
 
 
   streamingGenerate(prompt: string, responseOutput: CallbackFunction | null = null, contextOutput: CallbackFunction | null = null, fullResponseOutput: CallbackFunction | null = null, statsOutput: CallbackFunction | null = null): Promise<void> {
