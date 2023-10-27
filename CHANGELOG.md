@@ -1,3 +1,12 @@
+## [0.1.21](https://github.com/technovangelist/ollama-node/compare/v0.1.20...v0.1.21) (2023-10-27)
+
+
+### Bug Fixes
+
+* version got out of sync ([78ba188](https://github.com/technovangelist/ollama-node/commit/78ba188f47395b991c12d9be594efe5d1eed52d0))
+
+
+
 ## [0.1.20](https://github.com/technovangelist/ollama-node/compare/v0.1.19...v0.1.20) (2023-10-27)
 
 
