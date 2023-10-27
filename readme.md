@@ -1,7 +1,4 @@
 # Simple JS library to work with Ollama
-typescript
-[api](ollama-node/docs/api.md)
-[api2](./docs/api.md)
 
 The simplest JavaScript library for the easiest way to run LLMs.
 
