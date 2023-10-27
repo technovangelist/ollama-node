@@ -1,3 +1,12 @@
+## [0.1.23](https://github.com/technovangelist/ollama-node/compare/v0.1.22...v0.1.23) (2023-10-27)
+
+
+### Bug Fixes
+
+* update ([ce08966](https://github.com/technovangelist/ollama-node/commit/ce089665a6a7c3eea2c6b69ef38f0b0df0809b61))
+
+
+
 ## [0.1.22](https://github.com/technovangelist/ollama-node/compare/v0.1.21...v0.1.22) (2023-10-27)
 
 
@@ -31,15 +40,6 @@
 ### Bug Fixes
 
 * clean up ([c5218df](https://github.com/technovangelist/ollama-node/commit/c5218df26bd2f11b457252b050419fb2a54c0971))
-
-
-
-## [0.1.18](https://github.com/technovangelist/ollama-node/compare/v0.1.17...v0.1.18) (2023-10-27)
-
-
-### Bug Fixes
-
-* i dont have ci but the action thought so ([1a30fa9](https://github.com/technovangelist/ollama-node/commit/1a30fa9af921608decfc4a3c15c950c91ebae146))
 
 
 
