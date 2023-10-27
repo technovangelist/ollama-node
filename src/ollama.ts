@@ -81,19 +81,27 @@ export class Ollama {
     }
   }
 
+  private numberIfNumber(value: string): number | string {
+    const isOnlyNumbers = /^\d+$/.test(value);
+    if (isOnlyNumbers) {
+      return parseInt(value, 10);
+    }
+    return value;
+  }
 
   private async parseParams() {
     let options: Options = {};
     const info = await this.showModelInfo();
     const params = info.parameters?.split('\n').forEach(line => {
       const [name, value] = line.split(/\s+/).filter(Boolean);
+      const parsedvalue = this.numberIfNumber(value);
       if (name === 'stop') {
         if (!options.stop) {
           options.stop = [];
         }
-        options.stop.push(value);
+        options.stop.push(parsedvalue);
       } else {
-        options[name] = value;
+        options[name] = parsedvalue;
       }
     });
     return options;
@@ -227,7 +235,7 @@ export class Ollama {
     this.Context = final.context as number[];
 
     const output = messages.map(m => m.response).join("")
-    return { output, stats: genoutput.final }
+    return { output, stats: final }
 
   };
 
@@ -308,7 +316,7 @@ export class Ollama {
       prompt: input
     };
     const genoutput = await requestPost('embed', options, body);
-    console.log((genoutput.final as { embedding: number[]}).embedding)
+    return (genoutput.final as { embedding: number[] }).embedding
   };
 
   streamingCreate(modelName: string, modelPath: string, responseOutput: CallbackFunction | null = null): Promise<void> {
@@ -350,13 +358,20 @@ export class Ollama {
       }
       streamingPost('pull', options, body, async (chunk) => {
         const jchunk = JSON.parse(chunk);
-        if (Object.hasOwn(jchunk, 'status')) {
+        let percent = "";
+        if (Object.hasOwn(jchunk, 'completed')) {
+          percent = `downloading - ${(100 * (jchunk.completed / jchunk.total)).toFixed(2)} % complete`
+          responseOutput && responseOutput(`${percent}`)
+        } else if (Object.hasOwn(jchunk, 'status')) {
           responseOutput && responseOutput(jchunk.status)
           // if (jchunk.status === "success") {
           //   resolve();
           // }
         } else {
           responseOutput && responseOutput(jchunk)
+        }
+        if (jchunk.status === "success") {
+          resolve();
         }
       })
     })

@@ -160,7 +160,7 @@ export function requestPost<P extends PostTarget>(target: P, options: RequestOpt
       }
       response.on('data', (chunk) => {
         if (target === 'embed') {
-          console.log('hi');
+          // console.log('hi');
           body.push(chunk.toString('utf8'))
         } else {
           body.push(JSON.parse(chunk));

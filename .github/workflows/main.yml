@@ -1,0 +1,27 @@
+name: Publish NPM
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Conventional Changelog
+        id: changelog
+        uses: TriPSs/conventional-changelog-action@v4.1.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 21.1.0
+          registry-url: https://registry.npmjs.org/
+
+      - run: npm ci
+      - run: npm run build
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
