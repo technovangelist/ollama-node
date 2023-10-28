@@ -1,3 +1,4 @@
+import { error } from "console";
 import { requestList, requestShowInfo, requestPost, streamingPost, requestDelete } from "./utility";
 import { RequestOptions } from "http";
 
@@ -227,16 +228,26 @@ export class Ollama {
       options: this.Parameters,
       context: this.Context
     }
-    const genoutput = await requestPost('generate', generateOptions, generateBody);
-    const final: GenerateFinalOutput = genoutput.final as GenerateFinalOutput;
-    const messages: GenerateMessage[] = genoutput.messages as GenerateMessage[];
+    let genoutput, final, messages;
+    try {
+      genoutput = await requestPost('generate', generateOptions, generateBody);
+       final = genoutput.final as GenerateFinalOutput;
+       messages = genoutput.messages as GenerateMessage[];
+    } catch (error) {
+      console.log(`There was a problem generating output from ${this.Model} with the prompt ${prompt}: ${error}`)
+      return { output: "", stats: {} }
+    }
+
+
+    // const final: GenerateFinalOutput = genoutput.final as GenerateFinalOutput;
+    // const messages: GenerateMessage[] = genoutput.messages as GenerateMessage[];
     this.Context = final.context as number[];
 
     const output = messages.map(m => m.response).join("")
     return { output, stats: final }
 
   };
-  
+
 
 
   streamingGenerate(prompt: string, responseOutput: CallbackFunction | null = null, contextOutput: CallbackFunction | null = null, fullResponseOutput: CallbackFunction | null = null, statsOutput: CallbackFunction | null = null): Promise<void> {

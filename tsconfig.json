@@ -9,6 +9,7 @@
     "strict": false,
     "types": ["node", "jest"],  
     "skipLibCheck": true, 
+    "sourceMap": true
     // "forceConsistentCasingInFileNames": true
   },
   "include": ["src"],
