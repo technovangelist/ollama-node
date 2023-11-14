@@ -48,13 +48,36 @@ async function test() {
 
   const models = (await ollama.listModels()).models;
 
-  console.log(models)
-  for await (let model of models) {
-    await ollama.setModel(model);
-    console.log(model);
-    const out = await ollama.generate("Why is the sky blue?");
-    console.log(out.output);
+  const setandgen = async (model: string) => {
+
   }
+  // console.log(models)
+  models.forEach(async model => {
+    setTimeout(() => {
+      console.log(model)
+
+    }, 50);
+    const ollama2 = new Ollama();
+    // await Promise.all([
+    await ollama2.setModel(model)
+    await ollama2.streamingGenerate("Why is the sky blue?", print)
+    // ])
+  })
+  // for (let index = 0; index < models.length; index++) {
+  //   const element = models[index];
+  //   promises.push(ollama.setModel(element));
+  //   console.log(element);
+  //   // try {
+  //   promises.push(ollama.streamingGenerate("Why is the sky blue?", print))
+
+  //   // } catch (error) {
+  //   //   console.log(error);
+  //   // }
+
+  // }
+  // // console.log(promises)
+  // await Promise.all(promises);
+
 
   // await ollama.streamingGenerate("write a funny story about why the sky is blue. the story should be 5000 words at least", print);  // const first = await ollama.generate("why is the sky blue")
   // console.log(first.output);

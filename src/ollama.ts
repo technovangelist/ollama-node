@@ -274,7 +274,6 @@ export class Ollama {
           responseOutput && responseOutput(jchunk.response)
         } else {
           if (Object.hasOwn(jchunk, 'context')) {
-            // console.log(jchunk.context)
             statsOutput && statsOutput(JSON.stringify(jchunk))
             contextOutput && contextOutput(jchunk.context.toString());
             this.Context = jchunk.context;

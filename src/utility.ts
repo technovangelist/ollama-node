@@ -215,19 +215,19 @@ export function streamingPost<P extends PostTarget>(target: P, options: RequestO
 }
 
 
-export async function* streamingGenerate(options: RequestOptions, model: string, prompt: string, system: string, template: string, parameters: string): AsyncGenerator<any, any, unknown> {
-  const body: GenerateMessage[] = [];
+// export async function* streamingGenerate(options: RequestOptions, model: string, prompt: string, system: string, template: string, parameters: string): AsyncGenerator<any, any, unknown> {
+//   const body: GenerateMessage[] = [];
 
-  const req = request(options);
-  req.write(JSON.stringify({ "prompt": prompt, "model": model, "system": system, "template": template, "parameters": parameters }));
-  const response: IncomingMessage = await new Promise((resolve, reject) => {
-    req.on('response', resolve);
-    req.on('error', reject);
-    req.end();
-  });
-  for await (const chunk of response) {
-    body.push(JSON.parse(chunk));
-    yield JSON.parse(chunk);
-  }
+//   const req = request(options);
+//   req.write(JSON.stringify({ "prompt": prompt, "model": model, "system": system, "template": template, "parameters": parameters }));
+//   const response: IncomingMessage = await new Promise((resolve, reject) => {
+//     req.on('response', resolve);
+//     req.on('error', reject);
+//     req.end();
+//   });
+//   for await (const chunk of response) {
+//     body.push(JSON.parse(chunk));
+//     yield JSON.parse(chunk);
+//   }
 
-}
+// }
