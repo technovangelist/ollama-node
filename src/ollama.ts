@@ -23,6 +23,7 @@ type GenerateBodyInput = {
   model: string,
   prompt: string,
   system: string,
+  format?: string, 
   template: string,
   options: Options,
   context: number[]
@@ -67,6 +68,7 @@ export class Ollama {
   private Template: string = '';
   private Parameters: Options = {};
   private Context: number[] = [];
+  private JSONFormat: boolean = false;
 
   constructor();
   constructor(ollamaHost: string);
@@ -123,6 +125,10 @@ export class Ollama {
 
   showHost() {
     return this.Host;
+  }
+
+  setJSONFormat(useJSON: boolean) {
+    this.JSONFormat = useJSON;
   }
 
   async setModel(model: string) {
@@ -228,6 +234,7 @@ export class Ollama {
       options: this.Parameters,
       context: this.Context
     }
+    
     let genoutput, final, messages;
     try {
       genoutput = await requestPost('generate', generateOptions, generateBody);
@@ -266,7 +273,9 @@ export class Ollama {
         options: this.Parameters,
         context: this.Context
       }
-
+      if (this.JSONFormat) {
+        body.format = "json";
+      }
       streamingPost('generate', options, body, (chunk) => {
         const jchunk = JSON.parse(chunk);
         if (Object.hasOwn(jchunk, 'response')) {
