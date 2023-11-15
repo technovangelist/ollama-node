@@ -1,3 +1,12 @@
+## [0.1.25](https://github.com/technovangelist/ollama-node/compare/v0.1.24...v0.1.25) (2023-11-14)
+
+
+### Bug Fixes
+
+* a little cleanup ([8cf6079](https://github.com/technovangelist/ollama-node/commit/8cf60794fc3b89876d580577414b23efc213df25))
+
+
+
 ## [0.1.24](https://github.com/technovangelist/ollama-node/compare/v0.1.23...v0.1.24) (2023-10-28)
 
 
@@ -31,15 +40,6 @@
 ### Bug Fixes
 
 * version got out of sync ([78ba188](https://github.com/technovangelist/ollama-node/commit/78ba188f47395b991c12d9be594efe5d1eed52d0))
-
-
-
-## [0.1.20](https://github.com/technovangelist/ollama-node/compare/v0.1.19...v0.1.20) (2023-10-27)
-
-
-### Bug Fixes
-
-* to get changelog generate correct ([4c5421f](https://github.com/technovangelist/ollama-node/commit/4c5421fed25dd13f7c82222dd86247c5da5e988f))
 
 
 
