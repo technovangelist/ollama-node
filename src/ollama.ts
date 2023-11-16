@@ -226,7 +226,7 @@ export class Ollama {
       method: 'POST',
       path: '/api/generate',
     };
-    const generateBody: GenerateBodyInput = {
+    const body: GenerateBodyInput = {
       model: this.Model,
       prompt,
       system: this.SystemPrompt,
@@ -234,10 +234,13 @@ export class Ollama {
       options: this.Parameters,
       context: this.Context
     }
+    if (this.JSONFormat) {
+      body.format = "json";
+    }
     
     let genoutput, final, messages;
     try {
-      genoutput = await requestPost('generate', generateOptions, generateBody);
+      genoutput = await requestPost('generate', generateOptions, body);
        final = genoutput.final as GenerateFinalOutput;
        messages = genoutput.messages as GenerateMessage[];
     } catch (error) {
