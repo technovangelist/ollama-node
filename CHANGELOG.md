@@ -1,3 +1,12 @@
+## [0.1.26](https://github.com/technovangelist/ollama-node/compare/v0.1.25...v0.1.26) (2023-11-15)
+
+
+### Bug Fixes
+
+* first attempt at format json ([ea1763e](https://github.com/technovangelist/ollama-node/commit/ea1763ea5465deae9bc57a064b6842e9bb290b57))
+
+
+
 ## [0.1.25](https://github.com/technovangelist/ollama-node/compare/v0.1.24...v0.1.25) (2023-11-14)
 
 
@@ -31,15 +40,6 @@
 ### Bug Fixes
 
 * weird text at top of readme ([4b3dc79](https://github.com/technovangelist/ollama-node/commit/4b3dc7973d525bce888e0d5a0ab39c5eb796c502))
-
-
-
-## [0.1.21](https://github.com/technovangelist/ollama-node/compare/v0.1.20...v0.1.21) (2023-10-27)
-
-
-### Bug Fixes
-
-* version got out of sync ([78ba188](https://github.com/technovangelist/ollama-node/commit/78ba188f47395b991c12d9be594efe5d1eed52d0))
 
 
 
