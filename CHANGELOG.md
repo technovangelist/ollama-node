@@ -1,3 +1,12 @@
+## [0.1.27](https://github.com/technovangelist/ollama-node/compare/v0.1.26...v0.1.27) (2023-11-16)
+
+
+### Bug Fixes
+
+* add format json to non streaming generate ([92b7a73](https://github.com/technovangelist/ollama-node/commit/92b7a73effc111625698106a9187928182c282cb))
+
+
+
 ## [0.1.26](https://github.com/technovangelist/ollama-node/compare/v0.1.25...v0.1.26) (2023-11-15)
 
 
@@ -31,15 +40,6 @@
 ### Bug Fixes
 
 * update ([ce08966](https://github.com/technovangelist/ollama-node/commit/ce089665a6a7c3eea2c6b69ef38f0b0df0809b61))
-
-
-
-## [0.1.22](https://github.com/technovangelist/ollama-node/compare/v0.1.21...v0.1.22) (2023-10-27)
-
-
-### Bug Fixes
-
-* weird text at top of readme ([4b3dc79](https://github.com/technovangelist/ollama-node/commit/4b3dc7973d525bce888e0d5a0ab39c5eb796c502))
 
 
 
