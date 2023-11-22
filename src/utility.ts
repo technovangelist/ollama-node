@@ -151,7 +151,7 @@ export function requestDelete(options: RequestOptions, model: string) {
 }
 
 export function requestPost<P extends PostTarget>(target: P, options: RequestOptions, databody: PostInput<P>): Promise<FinalOutput> {
-  let body: {}[] = [];
+  let body: string[] = [];
   return new Promise((resolve, reject) => {
     const req = request(options, (response) => {
       const statusCode = response.statusCode || 0;
@@ -159,19 +159,26 @@ export function requestPost<P extends PostTarget>(target: P, options: RequestOpt
         return reject(new Error(`Failed with status code: ${response.statusCode}`));
       }
       response.on('data', (chunk) => {
+        const chunkStr = chunk.toString('utf8');
+
         if (target === 'embed') {
           // console.log('hi');
-          body.push(chunk.toString('utf8'))
+          body.push(chunkStr);
         } else {
-          body.push(JSON.parse(chunk));
+          if (chunkStr.startsWith('{"model":"')) {
+            body.push(chunkStr);
+          } else {
+            body[body.length - 1] += chunkStr;
+          }
         }
       });
       response.on('end', () => {
         if (target === 'embed') {
-          resolve({ messages: [], final: JSON.parse(body.join('')) })
+          resolve({ messages: [], final: JSON.parse(body.join('')) });
         } else {
-          const final = body[body.length - 1];
-          const messages = body.splice(0, body.length - 1);
+          const bodyJSON = body.map((chunkStr) => JSON.parse(chunkStr));
+          const final = bodyJSON[bodyJSON.length - 1];
+          const messages = bodyJSON.splice(0, bodyJSON.length - 1);
           resolve({ messages, final });
         }
       });
