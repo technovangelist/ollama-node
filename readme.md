@@ -1,3 +1,5 @@
+I am not really focusing on this anymore. The official library came out a few months ago, and that works a lot better. I am sure more and more of this will break.
+
 # Simple JS library to work with Ollama
 
 The simplest JavaScript library for the easiest way to run LLMs.
