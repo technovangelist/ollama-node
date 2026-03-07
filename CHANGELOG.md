@@ -1,3 +1,12 @@
+## [0.1.28](https://github.com/technovangelist/ollama-node/compare/v0.1.27...v0.1.28) (2026-03-07)
+
+
+### Bug Fixes
+
+* handle post requests with split chunk ([4ba6b40](https://github.com/technovangelist/ollama-node/commit/4ba6b4038196663a95952922c65d93785d66da11))
+
+
+
 ## [0.1.27](https://github.com/technovangelist/ollama-node/compare/v0.1.26...v0.1.27) (2023-11-16)
 
 
@@ -31,15 +40,6 @@
 ### Bug Fixes
 
 * Better catching of errors on generate ([1b85364](https://github.com/technovangelist/ollama-node/commit/1b85364d7a2131b453da5b925cc7567bcd5b7d13))
-
-
-
-## [0.1.23](https://github.com/technovangelist/ollama-node/compare/v0.1.22...v0.1.23) (2023-10-27)
-
-
-### Bug Fixes
-
-* update ([ce08966](https://github.com/technovangelist/ollama-node/commit/ce089665a6a7c3eea2c6b69ef38f0b0df0809b61))
 
 
 
